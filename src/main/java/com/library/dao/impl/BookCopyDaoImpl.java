@@ -101,11 +101,29 @@ public class BookCopyDaoImpl implements BookCopyDao {
     }
 
     @Override
+    public List<BookCopy> findAvailableByBookId(Long bookId) {
+        String sql = "SELECT * FROM book_copies WHERE book_id = ? AND status = 'AVAILABLE' FOR UPDATE SKIP LOCKED";
+        List<BookCopy> copies = new ArrayList<>();
+        try (PreparedStatement stmt = connectionManager.getConnection().prepareStatement(sql)) {
+            stmt.setLong(1, bookId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    copies.add(mapRow(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException("Failed to find available book copies", e);
+        }
+        return copies;
+    }
+
+    @Override
     public void update(BookCopy bookCopy) {
-        String sql = "UPDATE book_copies SET status = ? WHERE id = ?";
+        String sql = "UPDATE book_copies SET status = ?, inventory_number = ? WHERE id = ?";
         try (PreparedStatement stmt = connectionManager.getConnection().prepareStatement(sql)) {
             stmt.setString(1, bookCopy.getStatus().name());
-            stmt.setLong(2, bookCopy.getId());
+            stmt.setString(2, bookCopy.getInventoryNumber());
+            stmt.setLong(3, bookCopy.getId());
             stmt.executeUpdate();
         } catch (SQLException e) {
             throw new DatabaseException("Failed to update book copy", e);

@@ -35,7 +35,7 @@ import java.util.Locale;
  */
 @Configuration
 @EnableWebMvc
-@ComponentScan(basePackages = "com.library.controller")
+@ComponentScan(basePackages = {"com.library.controller", "com.library.interceptor"})
 public class WebMvcConfig implements WebMvcConfigurer {
 
     // =========================================================================
@@ -137,16 +137,34 @@ public class WebMvcConfig implements WebMvcConfigurer {
         return interceptor;
     }
 
+    private final com.library.interceptor.SecurityInterceptor securityInterceptor;
+    private final com.library.interceptor.RoleInterceptor roleInterceptor;
+    private final com.library.interceptor.LockCheckInterceptor lockCheckInterceptor;
+
+    public WebMvcConfig(
+            com.library.interceptor.SecurityInterceptor securityInterceptor,
+            com.library.interceptor.RoleInterceptor roleInterceptor,
+            com.library.interceptor.LockCheckInterceptor lockCheckInterceptor) {
+        this.securityInterceptor = securityInterceptor;
+        this.roleInterceptor = roleInterceptor;
+        this.lockCheckInterceptor = lockCheckInterceptor;
+    }
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         // i18n interceptor — must be registered first
         registry.addInterceptor(localeChangeInterceptor());
 
-        /*
-         * Future interceptors (added in subsequent tasks):
-         *   - AuthenticationInterceptor  — check session for logged-in user
-         *   - AuthorizationInterceptor   — check role (READER / LIBRARIAN / ADMIN)
-         *   - LockedUserInterceptor      — block locked users immediately
-         */
+        registry.addInterceptor(securityInterceptor)
+                .addPathPatterns("/**")
+                .excludePathPatterns("/login", "/register", "/static/**");
+
+        registry.addInterceptor(lockCheckInterceptor)
+                .addPathPatterns("/**")
+                .excludePathPatterns("/login", "/register", "/static/**");
+
+        registry.addInterceptor(roleInterceptor)
+                .addPathPatterns("/**")
+                .excludePathPatterns("/login", "/register", "/static/**");
     }
 }

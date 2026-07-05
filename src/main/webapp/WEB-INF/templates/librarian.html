@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/fragments :: head('Librarian Dashboard')}"></head>
+<body>
+<div th:replace="~{layout/fragments :: navbar}"></div>
+
+<div class="container mt-4">
+    <h2>Librarian Dashboard - Manage Requests</h2>
+    
+    <div class="mb-3">
+        <a href="/admin/books" class="btn btn-outline-primary">Manage Books Inventory</a>
+    </div>
+
+    <div th:replace="~{layout/fragments :: flash-messages}"></div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover mt-3">
+            <thead class="table-dark">
+                <tr>
+                    <th>User</th>
+                    <th>Book</th>
+                    <th>Type</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="borrow : ${pendingBorrows}">
+                    <td th:text="${borrow.user.firstName + ' ' + borrow.user.lastName}">User Name</td>
+                    <td th:text="${borrow.book.title}">Book Title</td>
+                    <td th:text="#{'lending.type.' + ${borrow.lendingType}}">Home</td>
+                    <td th:text="${borrow.borrowDate}">2025-01-01</td>
+                    <td>
+                        <span class="badge" 
+                              th:classappend="${borrow.status.name() == 'PENDING_APPROVE' ? 'bg-warning text-dark' : 
+                                              (borrow.status.name() == 'BORROWED' ? 'bg-primary' : 
+                                              (borrow.status.name() == 'PENDING_RETURN' ? 'bg-info text-dark' : 'bg-secondary'))}"
+                              th:text="#{'borrow.status.' + ${borrow.status}}">Status</span>
+                    </td>
+                    <td>
+                        <div th:if="${borrow.status.name() == 'PENDING_APPROVE'}">
+                            <form th:action="@{/borrows/{id}/approve(id=${borrow.id})}" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                            </form>
+                            <form th:action="@{/borrows/{id}/reject(id=${borrow.id})}" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-danger">Reject</button>
+                            </form>
+                        </div>
+                        <div th:if="${borrow.status.name() == 'BORROWED' or borrow.status.name() == 'PENDING_RETURN'}">
+                            <form th:action="@{/borrows/{id}/return(id=${borrow.id})}" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-primary">Process Return</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(pendingBorrows)}">
+                    <td colspan="6" class="text-center text-muted">No pending borrow requests.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div th:replace="~{layout/fragments :: footer}"></div>
+</body>
+</html>

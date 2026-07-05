@@ -4,6 +4,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 
 /**
  * Root Spring Application Configuration.
@@ -19,7 +21,7 @@ import org.springframework.context.annotation.PropertySource;
  *       {@link WebMvcConfig} context; scanning it here is harmless but it is explicitly
  *       narrowed to non-controller packages to keep concerns separate.</li>
  *   <li>{@code @PropertySource}    — loads {@code db.properties} from the classpath so
- *       that {@code @Value("${db.*}")} annotations in {@link CustomConnectionPool} work.</li>
+ *       that {@code @Value("${db.*}")} annotations in {@link ConnectionPool} work.</li>
  *   <li>{@code @EnableAspectJAutoProxy} — activates Spring AOP proxy creation for
  *       {@code @Aspect} classes (logging, auditing).</li>
  * </ul>
@@ -37,11 +39,8 @@ import org.springframework.context.annotation.PropertySource;
 @PropertySource("classpath:db.properties")
 @EnableAspectJAutoProxy
 public class AppConfig {
-    /*
-     * All beans are registered via @Component / @Service / @Repository annotations
-     * and discovered through @ComponentScan above.
-     *
-     * Additional explicit @Bean factory methods will be added here as the project
-     * grows (e.g., BCrypt PasswordEncoder, MessageSource for i18n).
-     */
+    @Bean
+    public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
+        return new PropertySourcesPlaceholderConfigurer();
+    }
 }

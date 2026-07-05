@@ -14,6 +14,8 @@ public interface BookCopyDao {
 
     List<BookCopy> findByBookId(Long bookId);
 
+    List<BookCopy> findAvailableByBookId(Long bookId);
+
     void update(BookCopy bookCopy);
 
     void delete(Long id);

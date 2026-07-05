@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/fragments :: head(#{book.list.title})}"></head>
+<body>
+<div th:replace="~{layout/fragments :: navbar}"></div>
+
+<div class="container mt-4">
+    <h1 class="mb-4" th:text="#{book.list.title}">Book Catalogue</h1>
+
+    <div th:replace="~{layout/fragments :: flash-messages}"></div>
+
+    <!-- Search Form -->
+    <div class="card p-3 mb-4 shadow-sm">
+        <form th:action="@{/catalog}" method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label for="title" class="form-label">Title</label>
+                <input type="text" class="form-control" id="title" name="title" th:value="${title}" th:placeholder="#{book.search.placeholder}">
+            </div>
+            <div class="col-md-3">
+                <label for="author" class="form-label">Author</label>
+                <input type="text" class="form-control" id="author" name="author" th:value="${author}">
+            </div>
+            <div class="col-md-3">
+                <label for="genre" class="form-label">Genre</label>
+                <input type="text" class="form-control" id="genre" name="genre" th:value="${genre}">
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100">Search</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Books Grid -->
+    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
+        <div class="col" th:each="book : ${books}">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-truncate" th:text="${book.title}">Book Title</h5>
+                    <h6 class="card-subtitle mb-2 text-muted" th:text="${book.publicationYear}">2025</h6>
+                    
+                    <p class="card-text small mb-1">
+                        <strong>ISBN:</strong> <span th:text="${book.isbn}">123456789</span>
+                    </p>
+                    <p class="card-text small mb-1">
+                        <strong>Authors:</strong>
+                        <span th:each="author, iterStat : ${book.authors}">
+                            <span th:text="${author.name}">Author Name</span><span th:if="${!iterStat.last}">, </span>
+                        </span>
+                    </p>
+                    <p class="card-text small mb-3">
+                        <strong>Genres:</strong>
+                        <span th:each="genre, iterStat : ${book.genres}" class="badge bg-secondary me-1" th:text="${genre.name}">Genre</span>
+                    </p>
+                    
+                    <a th:href="@{/catalog/{id}(id=${book.id})}" class="btn btn-outline-primary btn-sm w-100">Details</a>
+                </div>
+            </div>
+        </div>
+        <div th:if="${#lists.isEmpty(books)}" class="col-12 text-center text-muted">
+            <p>No books found.</p>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <nav aria-label="Page navigation" class="mt-4" th:if="${totalPages > 1}">
+        <ul class="pagination justify-content-center">
+            <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled' : ''">
+                <a class="page-link" th:href="@{/catalog(page=${currentPage - 1}, title=${title}, author=${author}, genre=${genre})}">Previous</a>
+            </li>
+            
+            <li class="page-item" th:each="pageNum : ${#numbers.sequence(1, totalPages)}" th:classappend="${pageNum == currentPage} ? 'active' : ''">
+                <a class="page-link" th:href="@{/catalog(page=${pageNum}, title=${title}, author=${author}, genre=${genre})}" th:text="${pageNum}">1</a>
+            </li>
+            
+            <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled' : ''">
+                <a class="page-link" th:href="@{/catalog(page=${currentPage + 1}, title=${title}, author=${author}, genre=${genre})}">Next</a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<div th:replace="~{layout/fragments :: footer}"></div>
+</body>
+</html>

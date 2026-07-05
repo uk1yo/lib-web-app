@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/fragments :: head(#{nav.admin})}"></head>
+<body>
+<div th:replace="~{layout/fragments :: navbar}"></div>
+
+<div class="container mt-4">
+    <h2 th:text="#{nav.admin}">Admin Panel - Manage Users</h2>
+    
+    <div class="mb-3">
+        <a href="/admin/books" class="btn btn-outline-primary">Manage Books Inventory</a>
+    </div>
+
+    <div th:replace="~{layout/fragments :: flash-messages}"></div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover mt-3">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="user : ${users}">
+                    <td th:text="${user.id}">1</td>
+                    <td th:text="${user.firstName + ' ' + user.lastName}">User Name</td>
+                    <td th:text="${user.email}">user@example.com</td>
+                    <td th:text="${user.role}">READER</td>
+                    <td>
+                        <span class="badge" 
+                              th:classappend="${user.isLocked} ? 'bg-danger' : 'bg-success'"
+                              th:text="${user.isLocked} ? 'Locked' : 'Active'">Status</span>
+                    </td>
+                    <td>
+                        <form th:if="${!user.isLocked}" th:action="@{/admin/users/{id}/lock(id=${user.id})}" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-danger" th:disabled="${user.role.name() == 'ADMIN'}">Lock</button>
+                        </form>
+                        <form th:if="${user.isLocked}" th:action="@{/admin/users/{id}/unlock(id=${user.id})}" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-success">Unlock</button>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div th:replace="~{layout/fragments :: footer}"></div>
+</body>
+</html>

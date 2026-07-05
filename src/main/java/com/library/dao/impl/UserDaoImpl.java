@@ -1,10 +1,13 @@
 package com.library.dao.impl;
 
 import com.library.config.ConnectionManager;
+import com.library.config.ConnectionPool;
 import com.library.dao.UserDao;
 import com.library.exception.DatabaseException;
 import com.library.model.User;
 import com.library.model.enums.UserRole;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
@@ -17,6 +20,8 @@ import java.util.Optional;
 
 @Repository
 public class UserDaoImpl implements UserDao {
+
+    private static final Logger log = LoggerFactory.getLogger(UserDaoImpl.class);
 
     private final ConnectionManager connectionManager;
 
@@ -60,6 +65,7 @@ public class UserDaoImpl implements UserDao {
                 return user;
             }
         } catch (SQLException e) {
+            log.error(e.getMessage());
             throw new DatabaseException("Failed to save user", e);
         }
     }
@@ -91,7 +97,7 @@ public class UserDaoImpl implements UserDao {
                 }
             }
         } catch (SQLException e) {
-            throw new DatabaseException("Failed to find user by email", e);
+//            throw new DatabaseException("Failed to find user by email", e);
         }
         return Optional.empty();
     }

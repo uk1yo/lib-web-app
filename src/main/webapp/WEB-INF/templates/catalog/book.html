@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/fragments :: head(#{book.detail.title})}"></head>
+<body>
+<div th:replace="~{layout/fragments :: navbar}"></div>
+
+<div class="container mt-4">
+    <div th:replace="~{layout/fragments :: flash-messages}"></div>
+
+    <div class="row">
+        <!-- Book Details -->
+        <div class="col-md-8">
+            <h2 th:text="${book.title}">Book Title</h2>
+            <h5 class="text-muted mb-3" th:text="${book.publicationYear}">2025</h5>
+            
+            <p><strong>ISBN:</strong> <span th:text="${book.isbn}">123456789</span></p>
+            
+            <p><strong>Authors:</strong>
+                <span th:each="author, iterStat : ${book.authors}">
+                    <span th:text="${author.name}">Author Name</span><span th:if="${!iterStat.last}">, </span>
+                </span>
+            </p>
+            
+            <p><strong>Genres:</strong>
+                <span th:each="genre : ${book.genres}" class="badge bg-secondary me-1" th:text="${genre.name}">Genre</span>
+            </p>
+
+            <hr>
+
+            <!-- Reviews Section -->
+            <h4>Reviews</h4>
+            <div th:if="${#lists.isEmpty(reviews)}" class="text-muted mb-3">No reviews yet.</div>
+            
+            <div th:each="review : ${reviews}" class="card mb-2">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted" th:text="${review.user.firstName + ' ' + review.user.lastName}">User Name</h6>
+                    <p class="card-text">
+                        <span th:each="star : ${#numbers.sequence(1, review.rating)}" class="text-warning">&#9733;</span>
+                        <span th:if="${review.rating < 5}">
+                            <span th:each="star : ${#numbers.sequence(1, 5 - review.rating)}" class="text-secondary">&#9734;</span>
+                        </span>
+                    </p>
+                    <p class="card-text" th:text="${review.comment}">Review comment</p>
+                </div>
+            </div>
+            
+            <div th:if="${session.user != null and session.user.role == 'READER'}">
+                <h5 class="mt-4">Leave a Review</h5>
+                <form th:action="@{/reviews}" method="post">
+                    <input type="hidden" name="bookId" th:value="${book.id}">
+                    <div class="mb-3">
+                        <label for="rating" class="form-label">Rating</label>
+                        <select id="rating" name="rating" class="form-select" required>
+                            <option value="5">5 - Excellent</option>
+                            <option value="4">4 - Good</option>
+                            <option value="3">3 - Average</option>
+                            <option value="2">2 - Poor</option>
+                            <option value="1">1 - Terrible</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="comment" class="form-label">Comment</label>
+                        <textarea id="comment" name="comment" class="form-control" rows="3" required maxlength="500"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit Review</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Borrowing Sidebar -->
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Borrow this Book</h5>
+                    
+                    <div th:if="${session.user != null and session.user.role == 'READER'}">
+                        <form th:action="@{/borrows/{bookId}(bookId=${book.id})}" method="post">
+                            <div class="mb-3">
+                                <label for="lendingType" class="form-label">Lending Type</label>
+                                <select class="form-select" id="lendingType" name="lendingType" required>
+                                    <option value="HOME" th:text="#{lending.type.HOME}">Home</option>
+                                    <option value="READING_ROOM" th:text="#{lending.type.READING_ROOM}">Reading Room</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100" th:text="#{book.reserve}">Reserve</button>
+                        </form>
+                    </div>
+                    
+                    <div th:if="${session.user == null}">
+                        <p class="text-muted">Please log in to borrow books.</p>
+                        <a href="/login" class="btn btn-outline-primary w-100">Login</a>
+                    </div>
+                    <div th:if="${session.user != null and session.user.role != 'READER'}">
+                        <p class="text-muted">Only readers can borrow books.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{layout/fragments :: footer}"></div>
+</body>
+</html>

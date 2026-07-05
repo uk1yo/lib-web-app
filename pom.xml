@@ -145,6 +145,13 @@
             <version>2.1.1</version>
         </dependency>
 
+        <!-- Validation -->
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>8.0.1.Final</version>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -182,16 +189,46 @@
                 </configuration>
             </plugin>
 
-            <!-- Tomcat 10 embedded runner (optional — for mvn tomcat7:run) -->
+            <!-- Cargo plugin to run Tomcat 10 embedded -->
             <plugin>
-                <groupId>org.apache.tomcat.maven</groupId>
-                <artifactId>tomcat7-maven-plugin</artifactId>
-                <version>2.2</version>
+                <groupId>org.codehaus.cargo</groupId>
+                <artifactId>cargo-maven3-plugin</artifactId>
+                <version>1.10.11</version>
                 <configuration>
-                    <port>8080</port>
-                    <path>/library</path>
+                    <container>
+                        <containerId>tomcat10x</containerId>
+                        <type>embedded</type>
+                    </container>
+                    <configuration>
+                        <properties>
+                            <cargo.servlet.port>8080</cargo.servlet.port>
+                        </properties>
+                    </configuration>
                 </configuration>
             </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.codehaus.cargo</groupId>-->
+<!--                <artifactId>cargo-maven3-plugin</artifactId>-->
+<!--                <version>1.10.11</version>-->
+<!--                <configuration>-->
+<!--                    <container>-->
+<!--                        <containerId>tomcat10x</containerId>-->
+<!--                        <type>embedded</type>-->
+<!--                    </container>-->
+<!--                    <configuration>-->
+<!--                        <properties>-->
+<!--                            <cargo.servlet.port>8080</cargo.servlet.port>-->
+<!--                        </properties>-->
+<!--                    </configuration>-->
+<!--                    <deployables>-->
+<!--                        <deployable>-->
+<!--                            <properties>-->
+<!--                                <context>/</context>-->
+<!--                            </properties>-->
+<!--                        </deployable>-->
+<!--                    </deployables>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
 
         </plugins>
     </build>

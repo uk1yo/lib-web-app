@@ -12,5 +12,9 @@ public interface BorrowRecordDao {
 
     List<BorrowRecord> findByUserId(Long userId);
 
+    List<BorrowRecord> findByStatus(com.library.model.enums.BorrowStatus status, int offset, int limit);
+
+    long countByStatus(com.library.model.enums.BorrowStatus status);
+
     void update(BorrowRecord record);
 }

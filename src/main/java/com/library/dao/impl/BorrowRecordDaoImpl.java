@@ -107,12 +107,49 @@ public class BorrowRecordDaoImpl implements BorrowRecordDao {
     }
 
     @Override
+    public List<BorrowRecord> findByStatus(BorrowStatus status, int offset, int limit) {
+        String sql = "SELECT * FROM borrow_records WHERE status = ? ORDER BY created_at DESC OFFSET ? LIMIT ?";
+        List<BorrowRecord> records = new ArrayList<>();
+        try (PreparedStatement stmt = connectionManager.getConnection().prepareStatement(sql)) {
+            stmt.setString(1, status.name());
+            stmt.setInt(2, offset);
+            stmt.setInt(3, limit);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    records.add(mapRow(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException("Failed to find borrow records by status", e);
+        }
+        return records;
+    }
+
+    @Override
+    public long countByStatus(BorrowStatus status) {
+        String sql = "SELECT COUNT(*) FROM borrow_records WHERE status = ?";
+        try (PreparedStatement stmt = connectionManager.getConnection().prepareStatement(sql)) {
+            stmt.setString(1, status.name());
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getLong(1);
+                }
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException("Failed to count borrow records by status", e);
+        }
+        return 0;
+    }
+
+    @Override
     public void update(BorrowRecord record) {
-        String sql = "UPDATE borrow_records SET status = ?, returned_at = ? WHERE id = ?";
+        String sql = "UPDATE borrow_records SET status = ?, due_date = ?, borrowed_at = ?, returned_at = ? WHERE id = ?";
         try (PreparedStatement stmt = connectionManager.getConnection().prepareStatement(sql)) {
             stmt.setString(1, record.getStatus().name());
-            stmt.setTimestamp(2, record.getReturnedAt() != null ? Timestamp.valueOf(record.getReturnedAt()) : null);
-            stmt.setLong(3, record.getId());
+            stmt.setTimestamp(2, record.getDueDate() != null ? Timestamp.valueOf(record.getDueDate()) : null);
+            stmt.setTimestamp(3, record.getBorrowedAt() != null ? Timestamp.valueOf(record.getBorrowedAt()) : null);
+            stmt.setTimestamp(4, record.getReturnedAt() != null ? Timestamp.valueOf(record.getReturnedAt()) : null);
+            stmt.setLong(5, record.getId());
             stmt.executeUpdate();
         } catch (SQLException e) {
             throw new DatabaseException("Failed to update borrow record", e);

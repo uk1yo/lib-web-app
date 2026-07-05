@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/fragments :: head('Manage Books')}"></head>
+<body>
+<div th:replace="~{layout/fragments :: navbar}"></div>
+
+<div class="container mt-4">
+    <h2>Inventory Management</h2>
+    
+    <div class="mb-3 d-flex gap-2">
+        <a th:if="${session.user.role.name() == 'ADMIN'}" href="/admin" class="btn btn-outline-secondary">Back to Users</a>
+        <a th:if="${session.user.role.name() == 'LIBRARIAN'}" href="/librarian" class="btn btn-outline-secondary">Back to Requests</a>
+        <a href="/admin/books/new" class="btn btn-success">Add New Book</a>
+    </div>
+
+    <div th:replace="~{layout/fragments :: flash-messages}"></div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover mt-3">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>ISBN</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="book : ${books}">
+                    <td th:text="${book.id}">1</td>
+                    <td th:text="${book.title}">Book Title</td>
+                    <td th:text="${book.isbn}">ISBN-123</td>
+                    <td>
+                        <form th:action="@{/admin/books/copies}" method="post" class="d-inline">
+                            <input type="hidden" name="bookId" th:value="${book.id}">
+                            <div class="input-group input-group-sm w-auto d-inline-flex">
+                                <input type="text" name="inventoryNumber" class="form-control" placeholder="Inv. #" required>
+                                <button type="submit" class="btn btn-primary">Add Copy</button>
+                            </div>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div th:replace="~{layout/fragments :: footer}"></div>
+</body>
+</html>

@@ -51,7 +51,20 @@ public class BookSearchQueryBuilder {
 
     public String buildQuery() {
         StringBuilder query = new StringBuilder("SELECT DISTINCT b.id FROM books b ");
+        appendJoinsAndConditions(query);
+        query.append(" ORDER BY b.id DESC OFFSET ? LIMIT ?");
+        parameters.add(offset);
+        parameters.add(limit);
+        return query.toString();
+    }
 
+    public String buildCountQuery() {
+        StringBuilder query = new StringBuilder("SELECT COUNT(DISTINCT b.id) FROM books b ");
+        appendJoinsAndConditions(query);
+        return query.toString();
+    }
+
+    private void appendJoinsAndConditions(StringBuilder query) {
         if (joinAuthor) {
             query.append("LEFT JOIN book_authors ba ON b.id = ba.book_id ");
             query.append("LEFT JOIN authors a ON ba.author_id = a.id ");
@@ -65,12 +78,6 @@ public class BookSearchQueryBuilder {
             query.append("WHERE ");
             query.append(String.join(" AND ", conditions));
         }
-
-        query.append(" ORDER BY b.id DESC OFFSET ? LIMIT ?");
-        parameters.add(offset);
-        parameters.add(limit);
-
-        return query.toString();
     }
 
     public List<Object> getParameters() {
