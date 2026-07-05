@@ -1,0 +1,121 @@
+package com.library.dao.impl;
+
+import com.library.config.ConnectionManager;
+import com.library.dao.BorrowRecordDao;
+import com.library.exception.DatabaseException;
+import com.library.model.BorrowRecord;
+import com.library.model.enums.BorrowStatus;
+import com.library.model.enums.LendingType;
+import org.springframework.stereotype.Repository;
+
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public class BorrowRecordDaoImpl implements BorrowRecordDao {
+
+    private final ConnectionManager connectionManager;
+
+    public BorrowRecordDaoImpl(ConnectionManager connectionManager) {
+        this.connectionManager = connectionManager;
+    }
+
+    private BorrowRecord mapRow(ResultSet rs) throws SQLException {
+        BorrowRecord record = new BorrowRecord();
+        record.setId(rs.getLong("id"));
+        record.setUserId(rs.getLong("user_id"));
+        record.setBookCopyId(rs.getLong("book_copy_id"));
+        record.setStatus(BorrowStatus.valueOf(rs.getString("status")));
+        record.setLendingType(LendingType.valueOf(rs.getString("lending_type")));
+
+        Timestamp dueDate = rs.getTimestamp("due_date");
+        if (dueDate != null) record.setDueDate(dueDate.toLocalDateTime());
+
+        Timestamp createdAt = rs.getTimestamp("created_at");
+        if (createdAt != null) record.setCreatedAt(createdAt.toLocalDateTime());
+
+        Timestamp borrowedAt = rs.getTimestamp("borrowed_at");
+        if (borrowedAt != null) record.setBorrowedAt(borrowedAt.toLocalDateTime());
+
+        Timestamp returnedAt = rs.getTimestamp("returned_at");
+        if (returnedAt != null) record.setReturnedAt(returnedAt.toLocalDateTime());
+
+        return record;
+    }
+
+    @Override
+    public BorrowRecord save(BorrowRecord record) {
+        String sql = "INSERT INTO borrow_records (user_id, book_copy_id, status, lending_type, due_date, borrowed_at, returned_at) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at";
+        try (PreparedStatement stmt = connectionManager.getConnection().prepareStatement(sql)) {
+            stmt.setLong(1, record.getUserId());
+            stmt.setLong(2, record.getBookCopyId());
+            stmt.setString(3, record.getStatus().name());
+            stmt.setString(4, record.getLendingType().name());
+            stmt.setTimestamp(5, record.getDueDate() != null ? Timestamp.valueOf(record.getDueDate()) : null);
+            stmt.setTimestamp(6, record.getBorrowedAt() != null ? Timestamp.valueOf(record.getBorrowedAt()) : null);
+            stmt.setTimestamp(7, record.getReturnedAt() != null ? Timestamp.valueOf(record.getReturnedAt()) : null);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    record.setId(rs.getLong("id"));
+                    record.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                }
+                return record;
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException("Failed to save borrow record", e);
+        }
+    }
+
+    @Override
+    public Optional<BorrowRecord> findById(Long id) {
+        String sql = "SELECT * FROM borrow_records WHERE id = ?";
+        try (PreparedStatement stmt = connectionManager.getConnection().prepareStatement(sql)) {
+            stmt.setLong(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapRow(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException("Failed to find borrow record by id", e);
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public List<BorrowRecord> findByUserId(Long userId) {
+        String sql = "SELECT * FROM borrow_records WHERE user_id = ? ORDER BY created_at DESC";
+        List<BorrowRecord> records = new ArrayList<>();
+        try (PreparedStatement stmt = connectionManager.getConnection().prepareStatement(sql)) {
+            stmt.setLong(1, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    records.add(mapRow(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException("Failed to find borrow records by user_id", e);
+        }
+        return records;
+    }
+
+    @Override
+    public void update(BorrowRecord record) {
+        String sql = "UPDATE borrow_records SET status = ?, returned_at = ? WHERE id = ?";
+        try (PreparedStatement stmt = connectionManager.getConnection().prepareStatement(sql)) {
+            stmt.setString(1, record.getStatus().name());
+            stmt.setTimestamp(2, record.getReturnedAt() != null ? Timestamp.valueOf(record.getReturnedAt()) : null);
+            stmt.setLong(3, record.getId());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new DatabaseException("Failed to update borrow record", e);
+        }
+    }
+}

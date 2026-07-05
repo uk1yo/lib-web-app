@@ -66,10 +66,10 @@ public class ConnectionManager {
 
     /**
      * Returns the {@link Connection} bound to the current thread.
-     * If no connection is bound yet, acquires one from {@link CustomConnectionPool}
+     * If no connection is bound yet, acquires one from {@link ConnectionPool}
      * and stores it in the {@link ThreadLocal}.
      *
-     * @return the thread-local {@link CustomConnectionPool.ProxyConnection} (never {@code null}).
+     * @return the thread-local {@link ConnectionPool.ProxyConnection} (never {@code null}).
      * @throws DatabaseException if the pool cannot supply a connection (exhausted or closed).
      */
     public Connection getConnection() {
@@ -87,7 +87,7 @@ public class ConnectionManager {
      * from the {@link ThreadLocal}.
      *
      * <p>Calling {@code connection.close()} delegates to
-     * {@link CustomConnectionPool.ProxyConnection#close()}, which resets connection
+     * {@link ConnectionPool.ProxyConnection#close()}, which resets connection
      * state (autoCommit, readOnly) and returns the proxy to the pool's available queue.</p>
      *
      * <p>Safe to call even if no connection is currently bound (no-op in that case).
@@ -105,7 +105,6 @@ public class ConnectionManager {
                 log.error("Error while releasing connection on thread [{}].",
                         Thread.currentThread().getName(), e);
             } finally {
-                // Always unbind — even if close() threw, we don't want a stale reference
                 threadLocalConnection.remove();
             }
         }

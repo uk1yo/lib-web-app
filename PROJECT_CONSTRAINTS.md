@@ -11,7 +11,7 @@
 
 ## 2. NAMING CONVENTIONS & DATA TRANSFER
 - **Database:** All tables and columns MUST use `snake_case`.
-- **Java Objects:** All Entities, Models, Request DTOs, and Response DTOs MUST use `CamelCase` (PascalCase for classes, camelCase for fields). 
+- **Java Objects:** All Entities, Models, Request DTOs, and Response DTOs MUST use `CamelCase` (PascalCase for classes, camelCase for fields).
 - Mapping between `snake_case` DB fields and `CamelCase` Java fields must be handled manually in the RowMappers/DAO layer.
 
 ## 3. ARCHITECTURE & LAYERING
@@ -19,7 +19,7 @@ Strict MVC & Layered Architecture. Components must be highly cohesive and decoup
 - `controller`: Spring MVC `@Controller` classes. Validation and HTTP request/response handling.
 - `service`: Business logic, transaction management, DTO conversions.
 - `dao`: Data Access Object layer. Pure JDBC interfaces and their implementations.
-- `model`: Domain entities (`User`, `Book`, `BookCopy`, `BorrowRecord`).
+- `model`: Domain entities (`User`, `Book`, `Author`, `Genre`, `BookCopy`, `BorrowRecord`, `Review`).
 - `dto`: Subpackages `request` and `response` for data transfer.
 - `config`: Spring Configuration classes, Custom Connection Pool.
 - `exception`: Custom domain exceptions and Global Exception Handler.
@@ -27,15 +27,18 @@ Strict MVC & Layered Architecture. Components must be highly cohesive and decoup
 
 ## 4. DATABASE & TRANSACTION MANAGEMENT
 - All queries must use `PreparedStatement` to prevent SQL Injection.
-- **Transaction Management:** Handled MANUALLY via JDBC `Connection` object at the `Service` layer. 
+- **Transaction Management:** Handled MANUALLY via JDBC `Connection` object at the `Service` layer.
   - Standard flow: `connection.setAutoCommit(false)` -> execute DAOs -> `connection.commit()` -> `catch: connection.rollback()`.
   - Use a `ThreadLocal` connection manager to ensure DAOs participate in the same transaction.
+- **Many-to-Many Relations (N+1 Prevention):** Relationships (e.g., Book-Author, Book-Genre) must be resolved using single SQL queries with `JOIN`s and manual `ResultSetExtractor` parsing. No lazy loading is available, avoid executing queries inside loops at all costs.
 
 ## 5. BUSINESS LOGIC (ERD v2 Rules)
 - **Roles:** `READER`, `LIBRARIAN`, `ADMIN`.
-- **Entities:**
-  - `Book`: Abstract concept (Title, Author, ISBN).
+- **Entities & Catalog:**
+  - `Book`: Abstract concept (Title, ISBN, Publication Year) linked to `Author` and `Genre` via Many-to-Many junction tables.
+  - `Author`, `Genre`: Independent entities.
   - `BookCopy`: Physical instance (inventory_number, status: `AVAILABLE`, `RESERVED`, `ISSUED`).
+  - `Review`: Optional rating (1-5) and comment system for books by users.
 - **Borrowing Lifecycle:** `BorrowRecord` statuses: `PENDING_APPROVE` -> `BORROWED` -> `PENDING_RETURN` -> `RETURNED` (also `CANCELLED`, `REJECTED`).
 - **Lending Types:** `HOME`, `READING_ROOM`. Due dates must be calculated based on the lending type.
 - **Access Control:** `User.is_locked` boolean. Blocked users lose all access immediately.
