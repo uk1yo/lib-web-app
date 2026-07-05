@@ -79,6 +79,13 @@ public class CustomConnectionPool implements AutoCloseable {
      */
     private BlockingQueue<Connection> usedConnections;
 
+    /**
+     * Set to {@code true} when {@link #close()} is called.
+     * Guards {@link #getConnection()} against use after shutdown
+     * and makes {@link #close()} idempotent.
+     */
+    private volatile boolean closed = false;
+
     // =========================================================================
     // Lifecycle
     // =========================================================================
@@ -136,6 +143,11 @@ public class CustomConnectionPool implements AutoCloseable {
     @Override
     @PreDestroy
     public synchronized void close() {
+        if (closed) {
+            log.debug("CustomConnectionPool.close() called more than once — ignoring.");
+            return;
+        }
+        closed = true;
         log.info("Shutting down CustomConnectionPool — draining used={}, available={}.",
                 usedConnections.size(), availableConnections.size());
         drainAndClose(usedConnections,   "used (leaked)");
@@ -156,6 +168,10 @@ public class CustomConnectionPool implements AutoCloseable {
      *                           or the waiting thread is interrupted.
      */
     public Connection getConnection() {
+        if (closed) {
+            throw new DatabaseException(
+                    "Cannot acquire connection: the connection pool has been shut down.");
+        }
         try {
             Connection proxy = availableConnections.poll(timeoutMs, TimeUnit.MILLISECONDS);
             if (proxy == null) {
