@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Unit tests for {@link CustomConnectionPool}.
+ * Unit tests for {@link ConnectionPool}.
  *
  * <p>Uses Mockito to mock physical {@link Connection} objects — no real PostgreSQL
  * connection is required. The pool's internal queues are populated via reflection
@@ -34,9 +34,9 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class CustomConnectionPoolTest {
+class ConnectionPoolTest {
 
-    private CustomConnectionPool pool;
+    private ConnectionPool pool;
 
     private static final int POOL_SIZE = 3;
 
@@ -51,7 +51,7 @@ class CustomConnectionPoolTest {
      */
     @BeforeEach
     void setUp() throws SQLException {
-        pool = new CustomConnectionPool();
+        pool = new ConnectionPool();
 
         ReflectionTestUtils.setField(pool, "poolSize",  POOL_SIZE);
         ReflectionTestUtils.setField(pool, "timeoutMs", 1000L);

@@ -42,7 +42,7 @@ import java.sql.SQLException;
  *
  * <h3>How connection return works</h3>
  * <p>{@link #releaseConnection()} calls {@code connection.close()}, which triggers
- * {@link CustomConnectionPool.ProxyConnection#close()} — that method resets
+ * {@link ConnectionPool.ProxyConnection#close()} — that method resets
  * connection state and moves the proxy back to the pool's {@code availableConnections}
  * queue. No direct call to any pool method is made here.</p>
  */
@@ -51,12 +51,12 @@ public class ConnectionManager {
 
     private static final Logger log = LoggerFactory.getLogger(ConnectionManager.class);
 
-    private final CustomConnectionPool pool;
+    private final ConnectionPool pool;
 
-    /** Stores one {@link CustomConnectionPool.ProxyConnection} per thread. */
+    /** Stores one {@link ConnectionPool.ProxyConnection} per thread. */
     private final ThreadLocal<Connection> threadLocalConnection = new ThreadLocal<>();
 
-    public ConnectionManager(CustomConnectionPool pool) {
+    public ConnectionManager(ConnectionPool pool) {
         this.pool = pool;
     }
 

@@ -17,7 +17,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Thread-safe custom JDBC connection pool implemented from scratch.
+ * Thread-safe JDBC connection pool implemented from scratch.
  *
  * <h3>Architecture</h3>
  * <p>Uses two {@link ArrayBlockingQueue} instances:</p>
@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
  * <p>Every physical {@link Connection} is wrapped in a {@link ProxyConnection}.
  * Calling {@link ProxyConnection#close()} does <em>not</em> physically close the
  * connection — instead it resets connection state and returns the proxy to
- * {@code availableConnections}. Physical closing happens only in {@link #destroy()}.</p>
+ * {@code availableConnections}. Physical closing happens only in {@link #close()}.</p>
  *
  * <h3>Configuration (via {@code db.properties})</h3>
  * <ul>
@@ -48,9 +48,9 @@ import java.util.concurrent.TimeUnit;
  * per project constraints.</p>
  */
 @Component
-public class CustomConnectionPool implements AutoCloseable {
+public class ConnectionPool implements AutoCloseable {
 
-    private static final Logger log = LoggerFactory.getLogger(CustomConnectionPool.class);
+    private static final Logger log = LoggerFactory.getLogger(ConnectionPool.class);
 
     @Value("${db.url}")
     private String url;
