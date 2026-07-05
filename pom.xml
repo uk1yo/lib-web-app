@@ -31,6 +31,8 @@
         <logback.version>1.5.6</logback.version>
         <junit.version>5.10.3</junit.version>
         <mockito.version>5.12.0</mockito.version>
+        <spring.security.version>6.2.4</spring.security.version>
+        <thymeleaf.extras.springsecurity.version>3.1.2.RELEASE</thymeleaf.extras.springsecurity.version>
     </properties>
 
     <dependencies>
@@ -94,6 +96,22 @@
             <groupId>org.mindrot</groupId>
             <artifactId>jbcrypt</artifactId>
             <version>${jbcrypt.version}</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-web</artifactId>
+            <version>${spring.security.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-config</artifactId>
+            <version>${spring.security.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.thymeleaf.extras</groupId>
+            <artifactId>thymeleaf-extras-springsecurity6</artifactId>
+            <version>${thymeleaf.extras.springsecurity.version}</version>
         </dependency>
 
         <!-- ===== LOGGING ===== -->
