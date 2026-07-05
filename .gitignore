@@ -1,0 +1,67 @@
+# ============================================================
+# .gitignore — Library Web App (Maven + Java 17 + Spring MVC)
+# ============================================================
+
+# ===== Maven build output =====
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# ===== IDE — IntelliJ IDEA =====
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# ===== IDE — Eclipse =====
+.classpath
+.project
+.settings/
+bin/
+
+# ===== IDE — VS Code =====
+.vscode/
+*.code-workspace
+
+# ===== IDE — NetBeans =====
+nbproject/
+nbbuild/
+nbdist/
+nb-configuration.xml
+
+# ===== OS files =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== Application logs =====
+logs/
+*.log
+*.log.*
+
+# ===== Sensitive config — NEVER commit real credentials! =====
+# db.properties contains local DB credentials.
+# Keep a db.properties.example in the repo for reference.
+# Uncomment the line below once you have set up db.properties.example:
+# src/main/resources/db.properties
+
+# ===== Compiled class files =====
+*.class
+
+# ===== Package files =====
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# ===== Tomcat / Servlet container =====
+*.ser
+.tomcat/
+work/
+
+# ===== JVM crash logs =====
+hs_err_pid*
+replay_pid*
