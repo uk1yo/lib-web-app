@@ -4,14 +4,13 @@ import com.library.config.ConnectionManager;
 import com.library.dao.BorrowRecordDao;
 import com.library.exception.DatabaseException;
 import com.library.model.BorrowRecord;
+import com.library.util.GenericRowMapper;
 import com.library.model.enums.BorrowStatus;
 import com.library.model.enums.LendingType;
 import org.springframework.stereotype.Repository;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.sql.*;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -20,32 +19,14 @@ import java.util.Optional;
 public class BorrowRecordDaoImpl implements BorrowRecordDao {
 
     private final ConnectionManager connectionManager;
+    private final GenericRowMapper<BorrowRecord> rowMapper = new GenericRowMapper<>();
 
     public BorrowRecordDaoImpl(ConnectionManager connectionManager) {
         this.connectionManager = connectionManager;
     }
 
     private BorrowRecord mapRow(ResultSet rs) throws SQLException {
-        BorrowRecord record = new BorrowRecord();
-        record.setId(rs.getLong("id"));
-        record.setUserId(rs.getLong("user_id"));
-        record.setBookCopyId(rs.getLong("book_copy_id"));
-        record.setStatus(BorrowStatus.valueOf(rs.getString("status")));
-        record.setLendingType(LendingType.valueOf(rs.getString("lending_type")));
-
-        Timestamp dueDate = rs.getTimestamp("due_date");
-        if (dueDate != null) record.setDueDate(dueDate.toLocalDateTime());
-
-        Timestamp createdAt = rs.getTimestamp("created_at");
-        if (createdAt != null) record.setCreatedAt(createdAt.toLocalDateTime());
-
-        Timestamp borrowedAt = rs.getTimestamp("borrowed_at");
-        if (borrowedAt != null) record.setBorrowedAt(borrowedAt.toLocalDateTime());
-
-        Timestamp returnedAt = rs.getTimestamp("returned_at");
-        if (returnedAt != null) record.setReturnedAt(returnedAt.toLocalDateTime());
-
-        return record;
+        return rowMapper.mapRow(rs, BorrowRecord.class);
     }
 
     @Override

@@ -7,8 +7,47 @@
 <div class="container mt-4">
     <h2 th:text="#{nav.admin}">Admin Panel - Manage Users</h2>
     
-    <div class="mb-3">
-        <a href="/admin/books" class="btn btn-outline-primary">Manage Books Inventory</a>
+    <div class="mb-3 d-flex justify-content-between align-items-center">
+        <div>
+            <a href="/admin/books" class="btn btn-outline-primary">Manage Books Inventory</a>
+            <button class="btn btn-success ms-2" data-bs-toggle="modal" data-bs-target="#createLibrarianModal">Create Librarian</button>
+        </div>
+    </div>
+
+    <!-- Create Librarian Modal -->
+    <div class="modal fade" id="createLibrarianModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form th:action="@{/admin/users/librarians}" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Create New Librarian</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">First Name</label>
+                            <input type="text" name="firstName" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" name="lastName" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <input type="password" name="password" class="form-control" required minlength="6">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-success">Create</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <div th:replace="~{layout/fragments :: flash-messages}"></div>

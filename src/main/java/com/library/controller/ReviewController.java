@@ -5,7 +5,9 @@ import com.library.model.Review;
 import com.library.model.User;
 import com.library.model.enums.UserRole;
 import com.library.service.ReviewService;
+import com.library.security.CustomUserDetails;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,9 +29,9 @@ public class ReviewController {
     public String addReview(@RequestParam Long bookId,
                             @RequestParam Integer rating,
                             @RequestParam String comment,
-                            HttpSession session,
+                            @AuthenticationPrincipal CustomUserDetails userDetails,
                             RedirectAttributes redirectAttributes) {
-        User user = (User) session.getAttribute("user");
+        User user = userDetails.getUser();
         
         Review review = new Review();
         review.setBookId(bookId);

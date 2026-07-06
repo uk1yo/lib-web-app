@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:fragment="head(title)">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -19,14 +19,14 @@
 
             <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
                 <li><a href="/catalog" class="nav-link px-2 text-white" th:text="#{nav.books}">Books</a></li>
-                <li th:if="${session.user != null and session.user.role == 'READER'}">
-                    <a href="/my-books" class="nav-link px-2 text-white" th:text="#{nav.borrow}">My Borrows</a>
+                <li sec:authorize="hasRole('READER')">
+                    <a href="/borrows/my" class="nav-link px-2 text-white" th:text="#{nav.borrow}">My Borrows</a>
                 </li>
-                <li th:if="${session.user != null and session.user.role == 'LIBRARIAN'}">
-                    <a href="/librarian" class="nav-link px-2 text-white">Librarian Panel</a>
+                <li sec:authorize="hasAnyRole('LIBRARIAN', 'ADMIN')">
+                    <a href="/borrows/manage" class="nav-link px-2 text-white">Librarian Panel</a>
                 </li>
-                <li th:if="${session.user != null and session.user.role == 'ADMIN'}">
-                    <a href="/admin" class="nav-link px-2 text-white" th:text="#{nav.admin}">Admin Panel</a>
+                <li sec:authorize="hasRole('ADMIN')">
+                    <a href="/admin/users" class="nav-link px-2 text-white" th:text="#{nav.admin}">Admin Panel</a>
                 </li>
             </ul>
 
@@ -41,16 +41,20 @@
                 </ul>
             </div>
 
-            <div class="text-end" th:if="${session.user == null}">
+            <div class="text-end" sec:authorize="isAnonymous()">
                 <a href="/login" class="btn btn-outline-light me-2" th:text="#{nav.login}">Login</a>
                 <a href="/register" class="btn btn-warning" th:text="#{nav.register}">Register</a>
             </div>
-            <div class="text-end dropdown" th:if="${session.user != null}">
-                <button class="btn btn-outline-light dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false" th:text="${session.user.firstName + ' ' + session.user.lastName}">
+            <div class="text-end dropdown" sec:authorize="isAuthenticated()">
+                <button class="btn btn-outline-light dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false" th:text="${#authentication.principal.user.firstName + ' ' + #authentication.principal.user.lastName}">
                     User
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                    <li><a class="dropdown-item" href="/logout" th:text="#{nav.logout}">Logout</a></li>
+                    <li>
+                        <form th:action="@{/logout}" method="post">
+                            <button type="submit" class="dropdown-item" style="border:none; background:none; width:100%; text-align:left;" th:text="#{nav.logout}">Logout</button>
+                        </form>
+                    </li>
                 </ul>
             </div>
         </div>

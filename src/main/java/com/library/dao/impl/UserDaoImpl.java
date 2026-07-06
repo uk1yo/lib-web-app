@@ -5,6 +5,7 @@ import com.library.config.ConnectionPool;
 import com.library.dao.UserDao;
 import com.library.exception.DatabaseException;
 import com.library.model.User;
+import com.library.util.GenericRowMapper;
 import com.library.model.enums.UserRole;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Repository;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -24,25 +25,14 @@ public class UserDaoImpl implements UserDao {
     private static final Logger log = LoggerFactory.getLogger(UserDaoImpl.class);
 
     private final ConnectionManager connectionManager;
+    private final GenericRowMapper<User> rowMapper = new GenericRowMapper<>();
 
     public UserDaoImpl(ConnectionManager connectionManager) {
         this.connectionManager = connectionManager;
     }
 
     private User mapRow(ResultSet rs) throws SQLException {
-        User user = new User();
-        user.setId(rs.getLong("id"));
-        user.setFirstName(rs.getString("first_name"));
-        user.setLastName(rs.getString("last_name"));
-        user.setEmail(rs.getString("email"));
-        user.setPasswordHash(rs.getString("password_hash"));
-        user.setRole(UserRole.valueOf(rs.getString("role")));
-        user.setIsLocked(rs.getBoolean("is_locked"));
-        Timestamp createdAt = rs.getTimestamp("created_at");
-        if (createdAt != null) {
-            user.setCreatedAt(createdAt.toLocalDateTime());
-        }
-        return user;
+        return rowMapper.mapRow(rs, User.class);
     }
 
     @Override

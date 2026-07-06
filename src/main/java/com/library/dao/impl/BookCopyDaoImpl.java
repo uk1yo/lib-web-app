@@ -4,6 +4,7 @@ import com.library.config.ConnectionManager;
 import com.library.dao.BookCopyDao;
 import com.library.exception.DatabaseException;
 import com.library.model.BookCopy;
+import com.library.util.GenericRowMapper;
 import com.library.model.enums.CopyStatus;
 import org.springframework.stereotype.Repository;
 
@@ -18,18 +19,14 @@ import java.util.Optional;
 public class BookCopyDaoImpl implements BookCopyDao {
 
     private final ConnectionManager connectionManager;
+    private final GenericRowMapper<BookCopy> rowMapper = new GenericRowMapper<>();
 
     public BookCopyDaoImpl(ConnectionManager connectionManager) {
         this.connectionManager = connectionManager;
     }
 
     private BookCopy mapRow(ResultSet rs) throws SQLException {
-        BookCopy copy = new BookCopy();
-        copy.setId(rs.getLong("id"));
-        copy.setBookId(rs.getLong("book_id"));
-        copy.setInventoryNumber(rs.getString("inventory_number"));
-        copy.setStatus(CopyStatus.valueOf(rs.getString("status")));
-        return copy;
+        return rowMapper.mapRow(rs, BookCopy.class);
     }
 
     @Override

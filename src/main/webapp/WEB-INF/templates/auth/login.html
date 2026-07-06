@@ -11,20 +11,26 @@
 
             <div th:replace="~{layout/fragments :: flash-messages}"></div>
 
-            <form th:action="@{/login}" th:object="${loginRequest}" method="post" class="card p-4 shadow-sm">
+            <form th:action="@{/login}" method="post" class="card p-4 shadow-sm">
                 
+                <div th:if="${param.error}" class="alert alert-danger">
+                    Invalid email or password.
+                </div>
+                <div th:if="${param.locked}" class="alert alert-danger">
+                    Your account has been locked. Please contact the administrator.
+                </div>
+                <div th:if="${param.logout}" class="alert alert-success">
+                    You have been logged out.
+                </div>
+
                 <div class="mb-3">
                     <label for="email" class="form-label" th:text="#{auth.login.username}">Email</label>
-                    <input type="email" id="email" class="form-control" th:field="*{email}" 
-                           th:classappend="${#fields.hasErrors('email')} ? 'is-invalid' : ''" required>
-                    <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                    <input type="email" id="email" name="email" class="form-control" required autofocus>
                 </div>
 
                 <div class="mb-3">
                     <label for="password" class="form-label" th:text="#{auth.login.password}">Password</label>
-                    <input type="password" id="password" class="form-control" th:field="*{password}"
-                           th:classappend="${#fields.hasErrors('password')} ? 'is-invalid' : ''" required minlength="6">
-                    <div class="invalid-feedback" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+                    <input type="password" id="password" name="password" class="form-control" required>
                 </div>
 
                 <button type="submit" class="btn btn-primary w-100" th:text="#{auth.login.submit}">Sign In</button>

@@ -5,7 +5,9 @@ import com.library.model.User;
 import com.library.model.enums.LendingType;
 import com.library.model.enums.UserRole;
 import com.library.service.BorrowService;
+import com.library.security.CustomUserDetails;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,8 +29,8 @@ public class BorrowController {
 
     @GetMapping("/my")
     @RoleRequired({UserRole.READER})
-    public String myBorrows(HttpSession session, Model model) {
-        User user = (User) session.getAttribute("user");
+    public String myBorrows(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
+        User user = userDetails.getUser();
         model.addAttribute("borrows", borrowService.findUserBorrows(user.getId()));
         return "my-books";
     }
@@ -46,9 +48,9 @@ public class BorrowController {
     @RoleRequired({UserRole.READER})
     public String borrowBook(@PathVariable Long bookId,
                              @RequestParam LendingType lendingType,
-                             HttpSession session,
+                             @AuthenticationPrincipal CustomUserDetails userDetails,
                              RedirectAttributes redirectAttributes) {
-        User user = (User) session.getAttribute("user");
+        User user = userDetails.getUser();
         borrowService.createBorrowRequest(user.getId(), bookId, lendingType);
         redirectAttributes.addFlashAttribute("successMessage", "Borrow request created successfully.");
         return "redirect:/catalog";

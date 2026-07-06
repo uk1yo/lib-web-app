@@ -1,13 +1,9 @@
 package com.library.controller;
 
-import com.library.dto.LoginRequest;
 import com.library.dto.UserRegistrationRequest;
 import com.library.exception.BusinessLogicException;
 import com.library.model.User;
 import com.library.service.UserService;
-import com.library.util.PasswordUtil;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,7 +14,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 @Controller
 public class AuthController {
-
     private final UserService userService;
 
     public AuthController(UserService userService) {
@@ -27,38 +22,7 @@ public class AuthController {
 
     @GetMapping("/login")
     public String showLoginForm(Model model) {
-        model.addAttribute("loginRequest", new LoginRequest());
         return "auth/login";
-    }
-
-    @PostMapping("/login")
-    public String login(@Valid @ModelAttribute("loginRequest") LoginRequest loginRequest,
-                        BindingResult bindingResult,
-                        HttpServletRequest request,
-                        Model model) {
-        if (bindingResult.hasErrors()) {
-            return "auth/login";
-        }
-
-        try {
-            User user = userService.findByEmail(loginRequest.getEmail());
-            if (Boolean.TRUE.equals(user.getIsLocked())) {
-                model.addAttribute("errorMessage", "Account is locked.");
-                return "auth/login";
-            }
-            
-            if (PasswordUtil.checkPassword(loginRequest.getPassword(), user.getPasswordHash())) {
-                HttpSession session = request.getSession(true);
-                session.setAttribute("user", user);
-                return "redirect:/catalog";
-            } else {
-                model.addAttribute("errorMessage", "Invalid credentials.");
-                return "auth/login";
-            }
-        } catch (Exception e) {
-            model.addAttribute("errorMessage", "Invalid credentials.");
-            return "auth/login";
-        }
     }
 
     @GetMapping("/register")
@@ -88,14 +52,5 @@ public class AuthController {
             model.addAttribute("errorMessage", e.getMessage());
             return "auth/register";
         }
-    }
-
-    @GetMapping("/logout")
-    public String logout(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            session.invalidate();
-        }
-        return "redirect:/login?logout=true";
     }
 }

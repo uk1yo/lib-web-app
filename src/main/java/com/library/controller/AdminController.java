@@ -30,6 +30,12 @@ public class AdminController {
         this.bookService = bookService;
     }
 
+    @GetMapping
+    @RoleRequired({UserRole.ADMIN})
+    public String adminRoot() {
+        return "redirect:/admin/users";
+    }
+
     @GetMapping("/users")
     @RoleRequired({UserRole.ADMIN})
     public String listUsers(Model model) {
@@ -55,15 +61,30 @@ public class AdminController {
 
     @GetMapping("/books")
     @RoleRequired({UserRole.ADMIN, UserRole.LIBRARIAN})
-    public String listBooks(Model model) {
-        model.addAttribute("books", bookService.searchBooks(null, null, null, 0, 1000)); // Simplified fetch all
+    public String listBooks(@RequestParam(defaultValue = "1") int page, Model model) {
+        int limit = 10;
+        int offset = (page - 1) * limit;
+
+        long totalBooks = bookService.countBooks(null, null, null);
+        int totalPages = (int) Math.ceil((double) totalBooks / limit);
+        if (totalPages == 0) totalPages = 1;
+
+        model.addAttribute("books", bookService.searchBooks(null, null, null, offset, limit));
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", totalPages);
+        
+        if (!model.containsAttribute("copyRequest")) {
+             model.addAttribute("copyRequest", new com.library.dto.BookCopyCreateRequest());
+        }
         return "librarian-books";
     }
 
     @GetMapping("/books/new")
     @RoleRequired({UserRole.ADMIN, UserRole.LIBRARIAN})
     public String showCreateBookForm(Model model) {
-        model.addAttribute("bookRequest", new com.library.dto.BookCreateRequest());
+        if (!model.containsAttribute("bookRequest")) {
+            model.addAttribute("bookRequest", new com.library.dto.BookCreateRequest());
+        }
         return "admin/books/new";
     }
 
@@ -71,10 +92,10 @@ public class AdminController {
     @RoleRequired({UserRole.ADMIN, UserRole.LIBRARIAN})
     public String createBook(@Valid @ModelAttribute("bookRequest") com.library.dto.BookCreateRequest bookRequest,
                              org.springframework.validation.BindingResult bindingResult,
-                             RedirectAttributes redirectAttributes) {
+                             RedirectAttributes redirectAttributes,
+                             Model model) {
         if (bindingResult.hasErrors()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Validation failed for book creation");
-            return "redirect:/admin/books/new";
+            return "admin/books/new";
         }
 
         Book book = new Book();
@@ -113,10 +134,19 @@ public class AdminController {
     @RoleRequired({UserRole.ADMIN, UserRole.LIBRARIAN})
     public String createBookCopy(@Valid @ModelAttribute("copyRequest") com.library.dto.BookCopyCreateRequest copyRequest,
                                  org.springframework.validation.BindingResult bindingResult,
-                                 RedirectAttributes redirectAttributes) {
+                                 RedirectAttributes redirectAttributes,
+                                 Model model) {
         if (bindingResult.hasErrors()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Validation failed for copy creation");
-            return "redirect:/admin/books";
+            int limit = 10;
+            int offset = 0;
+            long totalBooks = bookService.countBooks(null, null, null);
+            int totalPages = (int) Math.ceil((double) totalBooks / limit);
+            if (totalPages == 0) totalPages = 1;
+
+            model.addAttribute("books", bookService.searchBooks(null, null, null, offset, limit));
+            model.addAttribute("currentPage", 1);
+            model.addAttribute("totalPages", totalPages);
+            return "librarian-books";
         }
 
         BookCopy copy = new BookCopy();
@@ -128,5 +158,30 @@ public class AdminController {
 
         redirectAttributes.addFlashAttribute("successMessage", "Book copy added successfully.");
         return "redirect:/admin/books";
+    }
+
+    @PostMapping("/users/librarians")
+    @RoleRequired({UserRole.ADMIN})
+    public String createLibrarian(@Valid @ModelAttribute("registerRequest") com.library.dto.UserRegistrationRequest registerRequest,
+                                  org.springframework.validation.BindingResult bindingResult,
+                                  RedirectAttributes redirectAttributes) {
+        if (bindingResult.hasErrors()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Validation failed. Password must be at least 6 characters.");
+            return "redirect:/admin/users";
+        }
+
+        try {
+            com.library.model.User user = new com.library.model.User();
+            user.setFirstName(registerRequest.getFirstName());
+            user.setLastName(registerRequest.getLastName());
+            user.setEmail(registerRequest.getEmail());
+            user.setPasswordHash(registerRequest.getPassword());
+
+            userService.createLibrarian(user);
+            redirectAttributes.addFlashAttribute("successMessage", "Librarian created successfully.");
+        } catch (com.library.exception.BusinessLogicException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/admin/users";
     }
 }

@@ -4,12 +4,13 @@ import com.library.config.ConnectionManager;
 import com.library.dao.ReviewDao;
 import com.library.exception.DatabaseException;
 import com.library.model.Review;
+import com.library.util.GenericRowMapper;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -18,23 +19,14 @@ import java.util.Optional;
 public class ReviewDaoImpl implements ReviewDao {
 
     private final ConnectionManager connectionManager;
+    private final GenericRowMapper<Review> rowMapper = new GenericRowMapper<>();
 
     public ReviewDaoImpl(ConnectionManager connectionManager) {
         this.connectionManager = connectionManager;
     }
 
     private Review mapRow(ResultSet rs) throws SQLException {
-        Review review = new Review();
-        review.setId(rs.getLong("id"));
-        review.setBookId(rs.getLong("book_id"));
-        review.setUserId(rs.getLong("user_id"));
-        review.setRating(rs.getInt("rating"));
-        review.setComment(rs.getString("comment"));
-
-        Timestamp createdAt = rs.getTimestamp("created_at");
-        if (createdAt != null) review.setCreatedAt(createdAt.toLocalDateTime());
-
-        return review;
+        return rowMapper.mapRow(rs, Review.class);
     }
 
     @Override

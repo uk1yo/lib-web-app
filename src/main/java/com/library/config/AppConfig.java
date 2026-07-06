@@ -36,7 +36,7 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
         "com.library.util",
         "com.library.exception"
 })
-@PropertySource("classpath:db.properties")
+@PropertySource("classpath:application.properties")
 @EnableAspectJAutoProxy
 public class AppConfig {
     @Bean

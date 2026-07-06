@@ -9,12 +9,14 @@ import com.library.model.enums.LendingType;
 public interface BorrowService {
 
     /**
-     * Creates a new borrow request.
+     * Creates a new borrow request for a specific book by a user.
      *
-     * @param userId the user ID
-     * @param bookId the book ID
-     * @param type   the lending type
-     * @return the created borrow record
+     * @param userId the ID of the user requesting the book
+     * @param bookId the ID of the book being requested
+     * @param type   the lending type (e.g., IN_HALL, HOME)
+     * @return the created {@link BorrowRecord} containing request details
+     * @throws com.library.exception.BusinessLogicException if the user has too many unreturned books, has unpaid fines, or the book is out of stock
+     * @throws com.library.exception.ResourceNotFoundException if the user or the book does not exist
      */
     BorrowRecord createBorrowRequest(Long userId, Long bookId, LendingType type);
 

@@ -4,6 +4,7 @@ import com.library.config.ConnectionManager;
 import com.library.dao.GenreDao;
 import com.library.exception.DatabaseException;
 import com.library.model.Genre;
+import com.library.util.GenericRowMapper;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
@@ -16,16 +17,14 @@ import java.util.Optional;
 @Repository
 public class GenreDaoImpl implements GenreDao {
     private final ConnectionManager connectionManager;
+    private final GenericRowMapper<Genre> rowMapper = new GenericRowMapper<>();
 
     public GenreDaoImpl(ConnectionManager connectionManager) {
         this.connectionManager = connectionManager;
     }
 
     private Genre mapRow(ResultSet rs) throws SQLException {
-        Genre genre = new Genre();
-        genre.setId(rs.getLong("id"));
-        genre.setName(rs.getString("name"));
-        return genre;
+        return rowMapper.mapRow(rs, Genre.class);
     }
 
     @Override

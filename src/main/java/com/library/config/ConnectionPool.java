@@ -173,21 +173,39 @@ public class ConnectionPool implements AutoCloseable {
                     "Cannot acquire connection: the connection pool has been shut down.");
         }
         try {
-            Connection proxy = availableConnections.poll(timeoutMs, TimeUnit.MILLISECONDS);
-            if (proxy == null) {
-                throw new DatabaseException(
-                        "Connection pool exhausted — no connection available within "
-                                + timeoutMs + " ms. Pool size=" + poolSize
-                                + ", in-use=" + usedConnections.size());
+            while (true) {
+                Connection proxy = availableConnections.poll(timeoutMs, TimeUnit.MILLISECONDS);
+                if (proxy == null) {
+                    throw new DatabaseException(
+                            "Connection pool exhausted — no connection available within "
+                                    + timeoutMs + " ms. Pool size=" + poolSize
+                                    + ", in-use=" + usedConnections.size());
+                }
+
+                if (proxy instanceof ProxyConnection proxyConn) {
+                    Connection inner = proxyConn.getInnerConnection();
+                    if (!inner.isValid(1)) {
+                        log.warn("Pooled connection is dead, recreating.");
+                        try {
+                            inner.close();
+                        } catch (SQLException ignored) {}
+
+                        Connection physical = DriverManager.getConnection(url, username, password);
+                        proxy = new ProxyConnection(physical);
+                    }
+                }
+
+                usedConnections.add(proxy);
+                log.debug("Connection acquired — available={}, used={}.",
+                        availableConnections.size(), usedConnections.size());
+                return proxy;
             }
-            usedConnections.add(proxy);
-            log.debug("Connection acquired — available={}, used={}.",
-                    availableConnections.size(), usedConnections.size());
-            return proxy;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new DatabaseException(
                     "Thread interrupted while waiting for a pool connection.", e);
+        } catch (SQLException e) {
+            throw new DatabaseException("Failed to recreate dead connection", e);
         }
     }
 

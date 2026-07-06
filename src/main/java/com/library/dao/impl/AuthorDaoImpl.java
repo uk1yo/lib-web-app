@@ -4,6 +4,7 @@ import com.library.config.ConnectionManager;
 import com.library.dao.AuthorDao;
 import com.library.exception.DatabaseException;
 import com.library.model.Author;
+import com.library.util.GenericRowMapper;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
@@ -16,17 +17,14 @@ import java.util.Optional;
 @Repository
 public class AuthorDaoImpl implements AuthorDao {
     private final ConnectionManager connectionManager;
+    private final GenericRowMapper<Author> rowMapper = new GenericRowMapper<>();
 
     public AuthorDaoImpl(ConnectionManager connectionManager) {
         this.connectionManager = connectionManager;
     }
 
     private Author mapRow(ResultSet rs) throws SQLException {
-        Author author = new Author();
-        author.setId(rs.getLong("id"));
-        author.setFirstName(rs.getString("first_name"));
-        author.setLastName(rs.getString("last_name"));
-        return author;
+        return rowMapper.mapRow(rs, Author.class);
     }
 
     @Override

@@ -42,6 +42,12 @@
                     <div class="invalid-feedback" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
                 </div>
 
+                <div class="mb-3">
+                    <label for="confirmPassword" class="form-label">Confirm Password</label>
+                    <input type="password" id="confirmPassword" class="form-control" required minlength="6">
+                    <div class="invalid-feedback" id="confirmPasswordFeedback">Passwords do not match.</div>
+                </div>
+
                 <button type="submit" class="btn btn-primary w-100" th:text="#{auth.register.submit}">Register</button>
 
                 <div class="mt-3 text-center">
@@ -53,5 +59,53 @@
 </div>
 
 <div th:replace="~{layout/fragments :: footer}"></div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.querySelector('form');
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirmPassword');
+        const email = document.getElementById('email');
+
+        form.addEventListener('submit', function (event) {
+            let valid = true;
+
+            // Password match check
+            if (password.value !== confirmPassword.value) {
+                confirmPassword.classList.add('is-invalid');
+                valid = false;
+            } else {
+                confirmPassword.classList.remove('is-invalid');
+                confirmPassword.classList.add('is-valid');
+            }
+
+            // Simple Email Regex Check (custom fallback even if HTML5 catches it)
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email.value)) {
+                email.classList.add('is-invalid');
+                valid = false;
+            } else {
+                email.classList.remove('is-invalid');
+                email.classList.add('is-valid');
+            }
+
+            // If custom checks failed or standard HTML5 checks failed
+            if (!valid || !form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            form.classList.add('was-validated');
+        }, false);
+
+        // Remove invalid class instantly as user types matching password
+        confirmPassword.addEventListener('input', function() {
+            if (password.value === confirmPassword.value) {
+                confirmPassword.classList.remove('is-invalid');
+            }
+        });
+    });
+</script>
+
 </body>
 </html>
